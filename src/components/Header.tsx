@@ -18,7 +18,7 @@ const Header: React.FC<HeaderProps> = ({ username, timeLeft, currentQuestionNumb
       <div className="flex flex-col md:flex-row justify-between items-center">
         <div className="flex items-center mb-4 md:mb-0">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Kuiz App</h1>
+            <h1 className="text-xl font-bold text-gray-800">Kuis App</h1>
             <p className="text-gray-600">Halo, {username}</p>
           </div>
         </div>

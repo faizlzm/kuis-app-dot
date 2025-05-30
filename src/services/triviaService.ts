@@ -1,6 +1,6 @@
 import { Question } from '@/types/quiz';
 
-const API_URL = 'https://opentdb.com/api.php?amount=10&category=21&difficulty=medium&type=multiple';
+const API_URL = 'https://opentdb.com/api.php?amount=10&category=21&difficulty=easy&type=multiple';
 
 interface ApiResponse {
   response_code: number;

@@ -66,7 +66,7 @@ export const useQuiz = () => {
       setTimeLeft(QUIZ_DURATION); 
       setIsTimerRunning(true); 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal memuat soal.'); //
+      setError(err instanceof Error ? err.message : 'Gagal memuat soal.');
       setIsTimerRunning(false);
     } finally {
       setLoading(false);
@@ -78,19 +78,19 @@ export const useQuiz = () => {
       setUsername(name);
       setIsLoggedIn(true); 
     } else {
-      setError("Nama pengguna tidak boleh kosong."); //
+      setError("Nama pengguna tidak boleh kosong.");
     }
   }, [setUsername, setIsLoggedIn]);
 
   const startQuiz = useCallback(() => {
     if (!username.trim()) {
-      setError("Silakan masukkan nama pengguna terlebih dahulu."); //
+      setError("Silakan masukkan nama pengguna terlebih dahulu.");
       return;
     }
     fetchAndSetNewQuestions();
   }, [username, fetchAndSetNewQuestions]);
 
-  const handleAnswerSelect = useCallback((answer: string) => { //
+  const handleAnswerSelect = useCallback((answer: string) => {
     setQuizState(prev => {
       const newAnswers = [...prev.answers];
       newAnswers[prev.currentQuestionIndex] = answer;
@@ -114,7 +114,7 @@ export const useQuiz = () => {
     }); 
   }, [setQuizState]);
 
-  const calculateResults = useCallback((): Results => { //
+  const calculateResults = useCallback((): Results => {
     const correctAnswersCount = quizState.answers.filter((answer, index) => 
       quizState.questions[index] && answer === quizState.questions[index].correct_answer
     ).length;
@@ -127,7 +127,7 @@ export const useQuiz = () => {
       wrong: totalAnswered - correctAnswersCount,
       answered: totalAnswered,
       total: totalQuestions,
-      score: totalQuestions > 0 ? Math.round((correctAnswersCount / totalQuestions) * 100) : 0, //
+      score: totalQuestions > 0 ? Math.round((correctAnswersCount / totalQuestions) * 100) : 0,
     };
   }, [quizState.answers, quizState.questions]);
 

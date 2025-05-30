@@ -31,7 +31,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerSelect })
           <Button
             key={answer}
             onClick={() => onAnswerSelect(answer)}
-            variant="secondary" // atau style lain yang sesuai untuk pilihan jawaban
+            variant="secondary"
             fullWidth
             className="text-left !bg-gray-50 hover:!bg-indigo-50 !border-2 !border-transparent hover:!border-indigo-200 !text-gray-800 !font-medium p-4"
           >

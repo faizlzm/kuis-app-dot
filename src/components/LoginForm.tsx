@@ -23,7 +23,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onStartQuiz, currentUser
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalUsername(e.target.value);
-    setCurrentUsername(e.target.value); // Update state di page.tsx/useQuiz
+    setCurrentUsername(e.target.value);
   };
   
   return (
