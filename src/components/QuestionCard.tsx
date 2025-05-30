@@ -29,7 +29,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerSelect })
       <div className="space-y-4">
         {shuffledAnswers.map((answer, index) => (
           <Button
-            key={index}
+            key={answer}
             onClick={() => onAnswerSelect(answer)}
             variant="secondary" // atau style lain yang sesuai untuk pilihan jawaban
             fullWidth

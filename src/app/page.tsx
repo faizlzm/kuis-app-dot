@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { XCircle } from 'lucide-react';
 import { useQuiz } from '@/hooks/useQuiz';
 import LoginForm from '@/components/LoginForm';
@@ -28,6 +28,16 @@ export default function QuizPage() {
     currentQuestion,
     setError,
   } = useQuiz();
+
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) {
+    return <LoadingSpinner message="Menyiapkan aplikasi..." />;
+  }
 
   if (loading) {
     return <LoadingSpinner message="Memuat soal..." />;
@@ -63,7 +73,7 @@ export default function QuizPage() {
     );
   }
 
-  if (!isLoggedIn || !quizState.questions.length && !quizState.isFinished) {
+  if (!isLoggedIn || (quizState.questions.length === 0 && !quizState.isFinished)) {
     return (
       <LoginForm 
         onLogin={handleLogin} 

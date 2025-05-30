@@ -1,91 +1,101 @@
+// src/hooks/useQuiz.ts
 import { useState, useCallback, useEffect } from 'react';
-import { QuizState, Results } from '@/types/quiz';
-import { fetchTriviaQuestions } from '@/services/triviaService';
+import { QuizState, Results } from '@/types/quiz'; //
+import { fetchTriviaQuestions } from '@/services/triviaService'; //
+import { useLocalStorage } from './useLocalStorage'; //
 
-const INITIAL_QUIZ_STATE: QuizState = {
+// Fungsi untuk mendapatkan initial state, agar tidak error di server-side rendering
+// dan juga agar bisa dipanggil saat reset.
+const getInitialQuizState = (): QuizState => ({
   questions: [],
   answers: [],
   currentQuestionIndex: 0,
   isFinished: false,
-};
+});
 
 const QUIZ_DURATION = 300;
 
 export const useQuiz = () => {
-  const [username, setUsername] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [quizState, setQuizState] = useState<QuizState>(INITIAL_QUIZ_STATE);
+  const [username, setUsername] = useLocalStorage<string>('quizUsername', '');
+  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('quizIsLoggedIn', false);
+  const [quizState, setQuizState] = useLocalStorage<QuizState>('quizState', getInitialQuizState());
+  const [timeLeft, setTimeLeft] = useLocalStorage<number>('quizTimeLeft', QUIZ_DURATION);
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const [timeLeft, setTimeLeft] = useState(QUIZ_DURATION);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn && quizState.questions.length > 0 && !quizState.isFinished && timeLeft > 0) {
+      setIsTimerRunning(true);
+    } else if (quizState.isFinished || timeLeft <= 0) {
+      setIsTimerRunning(false);
+      if (timeLeft <= 0 && !quizState.isFinished) {
+        setQuizState(s => ({ ...s, isFinished: true }));
+      }
+    } else if (!isLoggedIn) {
+       setIsTimerRunning(false);
+    }
+  }, [isLoggedIn, quizState.isFinished, quizState.questions.length, timeLeft, setQuizState]);
 
   useEffect(() => {
     if (isTimerRunning && timeLeft > 0 && !quizState.isFinished) {
       const timerId = setInterval(() => {
-        setTimeLeft(prev => {
-          if (prev <= 1) {
+        setTimeLeft(prevTime => {
+          if (prevTime <= 1) {
             clearInterval(timerId);
             setQuizState(s => ({ ...s, isFinished: true }));
             setIsTimerRunning(false);
             return 0;
           }
-          return prev - 1;
+          return prevTime - 1;
         });
       }, 1000);
       return () => clearInterval(timerId);
-    } else if (timeLeft === 0 && !quizState.isFinished) {
-        setQuizState(s => ({ ...s, isFinished: true }));
-        setIsTimerRunning(false);
     }
-  }, [isTimerRunning, timeLeft, quizState.isFinished]);
+  }, [isTimerRunning, timeLeft, quizState.isFinished, setQuizState, setTimeLeft]);
 
-
-  const loadQuestions = useCallback(async () => {
-    if (!username.trim()) {
-        setError("Nama pengguna tidak boleh kosong.");
-        return;
-    }
+  // Fungsi untuk memuat soal baru
+  const fetchAndSetNewQuestions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const questions = await fetchTriviaQuestions();
+      const newQuestions = await fetchTriviaQuestions(); //
       setQuizState({
-        questions,
-        answers: new Array(questions.length).fill(null),
+        questions: newQuestions,
+        answers: new Array(newQuestions.length).fill(null),
         currentQuestionIndex: 0,
         isFinished: false,
-      });
-      setTimeLeft(QUIZ_DURATION);
-      setIsTimerRunning(true);
-      setIsLoggedIn(true); 
+      }); 
+      setTimeLeft(QUIZ_DURATION); 
+      setIsTimerRunning(true); 
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'error di useQuiz');
+      setError(err instanceof Error ? err.message : 'Gagal memuat soal.'); //
       setIsTimerRunning(false);
     } finally {
       setLoading(false);
     }
-  }, [username]);
+  }, [setQuizState, setTimeLeft]);
 
   const handleLogin = useCallback((name: string) => {
     if (name.trim()) {
-        setUsername(name);
+      setUsername(name);
+      setIsLoggedIn(true); 
     } else {
-        setError("Nama pengguna tidak boleh kosong.");
+      setError("Nama pengguna tidak boleh kosong."); //
     }
-  }, []);
+  }, [setUsername, setIsLoggedIn]);
 
+  // Handler untuk memulai kuis
   const startQuiz = useCallback(() => {
-    if (username.trim()) {
-        loadQuestions();
-    } else {
-        setError("Silakan masukkan nama pengguna terlebih dahulu.");
+    if (!username.trim()) {
+      setError("Silakan masukkan nama pengguna terlebih dahulu."); //
+      return;
     }
-  }, [username, loadQuestions]);
+    fetchAndSetNewQuestions();
+  }, [username, fetchAndSetNewQuestions]);
 
-
-  const handleAnswerSelect = useCallback((answer: string) => {
+  const handleAnswerSelect = useCallback((answer: string) => { //
     setQuizState(prev => {
       const newAnswers = [...prev.answers];
       newAnswers[prev.currentQuestionIndex] = answer;
@@ -106,10 +116,10 @@ export const useQuiz = () => {
         answers: newAnswers,
         currentQuestionIndex: prev.currentQuestionIndex + 1,
       };
-    });
-  }, []);
+    }); 
+  }, [setQuizState]);
 
-  const calculateResults = useCallback((): Results => {
+  const calculateResults = useCallback((): Results => { //
     const correctAnswersCount = quizState.answers.filter((answer, index) => 
       quizState.questions[index] && answer === quizState.questions[index].correct_answer
     ).length;
@@ -122,21 +132,23 @@ export const useQuiz = () => {
       wrong: totalAnswered - correctAnswersCount,
       answered: totalAnswered,
       total: totalQuestions,
-      score: totalQuestions > 0 ? Math.round((correctAnswersCount / totalQuestions) * 100) : 0,
+      score: totalQuestions > 0 ? Math.round((correctAnswersCount / totalQuestions) * 100) : 0, //
     };
   }, [quizState.answers, quizState.questions]);
 
   const resetQuiz = useCallback(() => {
     setUsername('');
-    setIsLoggedIn(false);
-    setQuizState(INITIAL_QUIZ_STATE);
-    setTimeLeft(QUIZ_DURATION);
+    setIsLoggedIn(false); 
+    setQuizState(getInitialQuizState()); 
+    setTimeLeft(QUIZ_DURATION); 
     setIsTimerRunning(false);
     setError(null);
     setLoading(false);
-  }, []);
+  }, [setUsername, setIsLoggedIn, setQuizState, setTimeLeft]);
   
-  const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
+  const currentQuestion = quizState.questions.length > 0 && quizState.currentQuestionIndex < quizState.questions.length
+    ? quizState.questions[quizState.currentQuestionIndex]
+    : null;
 
   return {
     username,
@@ -147,8 +159,8 @@ export const useQuiz = () => {
     error,
     timeLeft,
     isTimerRunning,
-    loadQuestions: startQuiz, 
-    handleLogin, 
+    loadQuestions: startQuiz,
+    handleLogin,
     handleAnswerSelect,
     calculateResults,
     resetQuiz,
