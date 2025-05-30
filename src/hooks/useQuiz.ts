@@ -1,11 +1,8 @@
-// src/hooks/useQuiz.ts
 import { useState, useCallback, useEffect } from 'react';
-import { QuizState, Results } from '@/types/quiz'; //
-import { fetchTriviaQuestions } from '@/services/triviaService'; //
-import { useLocalStorage } from './useLocalStorage'; //
+import { QuizState, Results } from '@/types/quiz';
+import { fetchTriviaQuestions } from '@/services/triviaService';
+import { useLocalStorage } from './useLocalStorage';
 
-// Fungsi untuk mendapatkan initial state, agar tidak error di server-side rendering
-// dan juga agar bisa dipanggil saat reset.
 const getInitialQuizState = (): QuizState => ({
   questions: [],
   answers: [],
@@ -55,12 +52,11 @@ export const useQuiz = () => {
     }
   }, [isTimerRunning, timeLeft, quizState.isFinished, setQuizState, setTimeLeft]);
 
-  // Fungsi untuk memuat soal baru
   const fetchAndSetNewQuestions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const newQuestions = await fetchTriviaQuestions(); //
+      const newQuestions = await fetchTriviaQuestions();
       setQuizState({
         questions: newQuestions,
         answers: new Array(newQuestions.length).fill(null),
@@ -86,7 +82,6 @@ export const useQuiz = () => {
     }
   }, [setUsername, setIsLoggedIn]);
 
-  // Handler untuk memulai kuis
   const startQuiz = useCallback(() => {
     if (!username.trim()) {
       setError("Silakan masukkan nama pengguna terlebih dahulu."); //
