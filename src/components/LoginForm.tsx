@@ -41,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin, onStartQuiz, currentUser
               value={localUsername}
               onChange={handleInputChange}
               placeholder="Masukkan nama Anda"
-              onKeyPress={(e) => {
+              onKeyDown={(e) => {
                 if (e.key === 'Enter' && localUsername.trim()) {
                   handleSubmit(e);
                 }
